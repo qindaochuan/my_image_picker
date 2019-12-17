@@ -7,6 +7,7 @@ import com.qianren.my_image_picker.R;
 
 public class ImageGridActivity extends Activity {
     public static final String EXTRAS_IMAGES = "IMAGES";
+    public static final int REQUEST_PERMISSION_CAMERA = 0x02;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
