@@ -9,6 +9,6 @@ public class ImageGridActivity extends ImageBaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //setContentView(R.layout.activity_image_grid);
+        setContentView(R.layout.activity_image_grid);
     }
 }
