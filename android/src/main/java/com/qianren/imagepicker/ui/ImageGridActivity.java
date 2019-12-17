@@ -1,10 +1,11 @@
 package com.qianren.imagepicker.ui;
 
+import android.app.Activity;
 import android.os.Bundle;
 
 import com.qianren.my_image_picker.R;
 
-public class ImageGridActivity extends ImageBaseActivity {
+public class ImageGridActivity extends Activity {
     public static final String EXTRAS_IMAGES = "IMAGES";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
