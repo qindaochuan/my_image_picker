@@ -10,11 +10,20 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.provider.MediaStore;
+import android.widget.ImageView;
 
 import androidx.core.content.FileProvider;
 
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
+import com.qianren.imageloader.UILImageLoader;
+import com.qianren.imagepicker.ImagePicker;
 import com.qianren.imagepicker.bean.ImageItem;
 import com.qianren.imagepicker.ui.ImageGridActivity;
+import com.qianren.imagepicker.view.CropImageView;
+
+import org.xutils.image.ImageOptions;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -43,6 +52,7 @@ public class MyImagePickerDelegate implements PluginRegistry.ActivityResultListe
     private boolean isClipErrorFlag = false;
 
     private ArrayList<ImageItem> images = null;
+    private ImagePicker imagePicker;
 
     private static final int HANDLER_SELECT_CAMERA_IMAGE = 1;
     private static final int HANDLER_SELECT_ALBUM_IMAGE = 2;
@@ -52,7 +62,29 @@ public class MyImagePickerDelegate implements PluginRegistry.ActivityResultListe
     private static final int PHOTO_PICKED_WITH_DATA = 3021;
     private static final int CUT_OK = 3022;
 
+    public static DisplayImageOptions imageLoaderOptions = new DisplayImageOptions.Builder()//
+            .showImageOnLoading(R.drawable.ic_default_image)         //设置图片在下载期间显示的图片
+            .showImageForEmptyUri(R.drawable.ic_default_image)       //设置图片Uri为空或是错误的时候显示的图片
+            .showImageOnFail(R.drawable.ic_default_image)            //设置图片加载/解码过程中错误时候显示的图片
+            .cacheInMemory(true)                                //设置下载的图片是否缓存在内存中
+            .cacheOnDisk(true)                                  //设置下载的图片是否缓存在SD卡中
+            .build();                                           //构建完成
+
+    public static ImageOptions xUtilsOptions = new ImageOptions.Builder()//
+            .setIgnoreGif(false)                                //是否忽略GIF格式的图片
+            .setImageScaleType(ImageView.ScaleType.FIT_CENTER)  //缩放模式
+            .setLoadingDrawableId(R.drawable.ic_default_image)       //下载中显示的图片
+            .setFailureDrawableId(R.drawable.ic_default_image)       //下载失败显示的图片
+            .build();                                           //得到ImageOptions对象
+
     public MyImagePickerDelegate(Activity activity) {
+        ImageLoaderConfiguration config = ImageLoaderConfiguration.createDefault(activity);
+
+        ImageLoader.getInstance().init(config);     //UniversalImageLoader初始化
+
+        imagePicker = ImagePicker.getInstance();
+        imagePicker.setImageLoader(new UILImageLoader()); //设置图片加载器
+
         this.activity = activity;
         this.handler = new MyHandler(activity, this);
 
@@ -188,6 +220,17 @@ public class MyImagePickerDelegate implements PluginRegistry.ActivityResultListe
             public void run() {
                 Looper.prepare();
                 try {
+                    imagePicker.setImageLoader(new UILImageLoader()); //设置图片加载器
+                    imagePicker.setShowCamera(true);  //显示拍照按钮
+                    imagePicker.setCrop(true);        //允许裁剪（单选才有效）
+                    imagePicker.setSaveRectangle(false); //是否按矩形区域保存
+                    imagePicker.setMultiMode(false);
+                    imagePicker.setStyle(CropImageView.Style.CIRCLE);  //裁剪框的形状
+                    imagePicker.setFocusWidth(800);   //裁剪框的宽度。单位像素（圆形自动取宽高最小值）
+                    imagePicker.setFocusHeight(800);  //裁剪框的高度。单位像素（圆形自动取宽高最小值）
+                    imagePicker.setOutPutX(1000);//保存文件的宽度。单位像素
+                    imagePicker.setOutPutY(1000);//保存文件的高度。单位像素
+
                     Intent intent = new Intent(activity, ImageGridActivity.class);
                     intent.putExtra(ImageGridActivity.EXTRAS_IMAGES,images);
                     //ImagePicker.getInstance().setSelectedImages(images);
