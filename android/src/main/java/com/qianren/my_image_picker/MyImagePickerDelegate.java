@@ -54,6 +54,10 @@ public class MyImagePickerDelegate implements PluginRegistry.ActivityResultListe
 
     private ArrayList<ImageItem> images = null;
     private ImagePicker imagePicker;
+    private int focusWidth;
+    private int focusHeight;
+    private int outPutX;
+    private int outPutY;
 
     private static final int HANDLER_SELECT_CAMERA_IMAGE = 1;
     private static final int HANDLER_SELECT_ALBUM_IMAGE = 2;
@@ -132,15 +136,20 @@ public class MyImagePickerDelegate implements PluginRegistry.ActivityResultListe
 
     public void circleCrop(MethodCall call, MethodChannel.Result result) {
         this.result = result;
-        double maxWidth = call.argument("maxWidth");
-        double maxHeight = call.argument("maxHeight");
-        int imageQuality = call.argument("imageQuality");
+        int focusWidth = call.argument("focusWidth");
+        int focusHeight = call.argument("focusHeight");
+        int outPutX = call.argument("outPutX");
+        int outPutY = call.argument("outPutY");
+
         System.out.println("Call Java circleCrop");
-        System.out.println(String.format("maxWidth = %s maxHeight = %s imageQuality = %d", maxHeight, maxHeight, imageQuality));
-        this.maxWidth = maxWidth;
-        this.maxHeight = maxHeight;
-        this.imageQuality = imageQuality;
-        isClipErrorFlag = false;
+
+        System.out.println(String.format("focusWidth = %s focusHeight = %s outPutX = %s outPutY = %s", focusWidth, focusHeight, outPutX, outPutY));
+
+        this.focusWidth = focusWidth;
+        this.focusHeight = focusHeight;
+        this.outPutX = outPutX;
+        this.outPutY = outPutY;
+
         Message msg = new Message();
         msg.what = HANDLER_CIRCLE_CROP;
         handler.sendMessage(msg);
@@ -227,10 +236,10 @@ public class MyImagePickerDelegate implements PluginRegistry.ActivityResultListe
                     imagePicker.setSaveRectangle(false); //是否按矩形区域保存
                     imagePicker.setMultiMode(false);
                     imagePicker.setStyle(CropImageView.Style.CIRCLE);  //裁剪框的形状
-                    imagePicker.setFocusWidth(800);   //裁剪框的宽度。单位像素（圆形自动取宽高最小值）
-                    imagePicker.setFocusHeight(800);  //裁剪框的高度。单位像素（圆形自动取宽高最小值）
-                    imagePicker.setOutPutX(1000);//保存文件的宽度。单位像素
-                    imagePicker.setOutPutY(1000);//保存文件的高度。单位像素
+                    imagePicker.setFocusWidth(focusWidth);   //裁剪框的宽度。单位像素（圆形自动取宽高最小值）
+                    imagePicker.setFocusHeight(focusHeight);  //裁剪框的高度。单位像素（圆形自动取宽高最小值）
+                    imagePicker.setOutPutX(outPutX);//保存文件的宽度。单位像素
+                    imagePicker.setOutPutY(outPutY);//保存文件的高度。单位像素
 
                     Intent intent = new Intent(activity, ImageGridActivity.class);
                     intent.putExtra(ImageGridActivity.EXTRAS_IMAGES,images);
