@@ -14,8 +14,8 @@ import android.app.Activity;
 import android.net.Uri;
 import android.widget.ImageView;
 
-import com.qianren.imagepicker.loader.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.ImageSize;
+import com.qianren.imagepicker.loader.ImageLoader;
 
 import java.io.File;
 
