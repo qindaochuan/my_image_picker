@@ -11,6 +11,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.provider.MediaStore;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.core.content.FileProvider;
 
@@ -273,6 +274,23 @@ public class MyImagePickerDelegate implements PluginRegistry.ActivityResultListe
                         }
                     });
                 }
+            }
+        }
+        else if (resultCode == ImagePicker.RESULT_CODE_ITEMS) {
+            if (data != null && requestCode == 100) {
+                images = (ArrayList<ImageItem>) data.getSerializableExtra(ImagePicker.EXTRA_RESULT_ITEMS);
+                System.out.println("圆形裁切图片路径: " + images.get(0).path);
+                Handler thisHandler = new Handler(Looper.getMainLooper());
+                thisHandler.post(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        result.success(images.get(0).path);
+                    }
+                });
+            } else {
+                Toast.makeText(this.activity, "没有数据", Toast.LENGTH_SHORT).show();
             }
         }
         else{
