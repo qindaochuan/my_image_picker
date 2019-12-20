@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="15702" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="15704"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" id="gTV-IL-0wX" customClass="ZLPhotoCell">
+            <rect key="frame" x="0.0" y="0.0" width="117" height="113"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
+                <rect key="frame" x="0.0" y="0.0" width="117" height="113"/>
+                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                <subviews>
+                    <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="wx2-RT-Ycj">
+                        <rect key="frame" x="0.0" y="0.0" width="117" height="113"/>
+                    </imageView>
+                    <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="icon_select" translatesAutoresizingMaskIntoConstraints="NO" id="fvB-kz-V5P">
+                        <rect key="frame" x="89" y="85" width="25" height="25"/>
+                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstAttribute="width" constant="25" id="M3v-NR-YjY"/>
+                            <constraint firstAttribute="height" constant="25" id="cf6-1c-s9T"/>
+                        </constraints>
+                    </imageView>
+                </subviews>
+            </view>
+            <constraints>
+                <constraint firstAttribute="bottom" secondItem="wx2-RT-Ycj" secondAttribute="bottom" id="EzZ-Pi-U1I"/>
+                <constraint firstAttribute="bottom" secondItem="fvB-kz-V5P" secondAttribute="bottom" constant="3" id="JT4-kd-1xF"/>
+                <constraint firstAttribute="trailing" secondItem="wx2-RT-Ycj" secondAttribute="trailing" id="MY0-bC-anA"/>
+                <constraint firstAttribute="trailing" secondItem="fvB-kz-V5P" secondAttribute="trailing" constant="3" id="p6X-Ll-F5p"/>
+                <constraint firstItem="wx2-RT-Ycj" firstAttribute="top" secondItem="gTV-IL-0wX" secondAttribute="top" id="sJf-WD-ar6"/>
+                <constraint firstItem="wx2-RT-Ycj" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" id="sNt-1Y-70f"/>
+            </constraints>
+            <size key="customSize" width="117" height="113"/>
+            <connections>
+                <outlet property="imgView" destination="wx2-RT-Ycj" id="zWe-it-xra"/>
+                <outlet property="selectImgView" destination="fvB-kz-V5P" id="dJh-AD-oZq"/>
+            </connections>
+            <point key="canvasLocation" x="476.5" y="438.5"/>
+        </collectionViewCell>
+    </objects>
+    <resources>
+        <image name="icon_select" width="32" height="32"/>
+    </resources>
+</document>
