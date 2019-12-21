@@ -21,6 +21,7 @@
 @property (nonatomic,strong) NSMutableArray *selectIndexs;
 @property (nonatomic,strong) UIBarButtonItem *rightItem;
 @property (nonatomic,copy) Complete completeHandle;
+@property (nonatomic,copy) FlutterResult result;
 @end
 
 @implementation ZLPickPhotoViewController
@@ -55,9 +56,10 @@ static NSString * const reuseIdentifier = @"Cell";
     return _limitCount;
 }
 
-- (instancetype)initWithCompleteHandle:(Complete)completeHandle  {
+- (instancetype)initWithCompleteHandle:(Complete)completeHandle result:(FlutterResult)result  {
     if (self = [self init]) {
         self.completeHandle = completeHandle;
+        self.result = result;
     }
     return self;
 }
@@ -216,7 +218,12 @@ static NSString * const reuseIdentifier = @"Cell";
             picker.sourceType = sourceType;
             [self presentViewController:picker animated:YES completion:nil];
         }else {
-            NSLog(@"该设备无摄像头");
+            //NSLog(@"该设备无摄像头");
+            [[[UIAlertView alloc] initWithTitle:@"Error"
+                      message:@"Camera not available."
+                     delegate:nil
+            cancelButtonTitle:@"OK"
+            otherButtonTitles:nil] show];
         }
     }
     else
@@ -257,17 +264,22 @@ static NSString * const reuseIdentifier = @"Cell";
     NSData *imagedata = UIImageJPEGRepresentation(editedImage,1.0);
     NSArray*paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES);
     NSString *documentsDirectory = [paths objectAtIndex:0];
-    NSString *savedImagePath = [documentsDirectory stringByAppendingPathComponent:@"11.jpg"];
+    NSDate *currentDate = [NSDate date];//获取当前时间，日期
+    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];// 创建一个时间格式化对象
+    [dateFormatter setDateFormat:@"YYYY-MM-dd-hh-mm-ss-SS"];//设定时间格式,这里可以设置成自己需要的格式
+    NSString *dateString = [dateFormatter stringFromDate:currentDate];//将时间转化成字符串
+    NSString *savedImagePath = [documentsDirectory stringByAppendingPathComponent:[dateString stringByAppendingString:@".jpg" ]];
     [imagedata writeToFile:savedImagePath atomically:YES];
+    self.result(savedImagePath);
     [cropperViewController dismissViewControllerAnimated:YES completion:^{
         CATransition *animation = [CATransition animation];
         animation.duration = 0.4f;
         animation.type = kCATransitionMoveIn;
         animation.subtype = kCATransitionFromBottom;
-        
-        [self dismissViewControllerAnimated:(YES) completion:^{
-              
-        }];
+    }];
+    
+    [self dismissViewControllerAnimated:(YES) completion:^{
+                 
     }];
 }
 

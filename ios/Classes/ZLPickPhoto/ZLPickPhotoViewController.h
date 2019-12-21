@@ -7,10 +7,11 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <Flutter/Flutter.h>
 
 typedef void(^Complete)(NSArray *images);
 
 @interface ZLPickPhotoViewController : UICollectionViewController
 @property (nonatomic,assign) NSInteger limitCount;  // 限制选择多少张图片，0为不限制
-- (instancetype)initWithCompleteHandle:(Complete)completeHandle;
+- (instancetype)initWithCompleteHandle:(Complete)completeHandle result:(FlutterResult)result;
 @end

@@ -55,7 +55,7 @@
         //[weakSelf.resultImage removeAllObjects];
         //[weakSelf.resultImage addObjectsFromArray:images];
         //[weakSelf.collectionView reloadData];
-    }];
+    } result:self.result];
     // 限制最多能选多少张
     vc.limitCount = 1;
     UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:vc];
