@@ -194,18 +194,18 @@ static NSString * const reuseIdentifier = @"Cell";
 
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
     NSInteger i = indexPath.row;
-    if ([self.selectIndexs containsObject:@(i)]) {
-        [self.selectIndexs removeObject:@(i)];
-    } else {
-        if (self.limitCount != 0 && self.selectIndexs.count >= self.limitCount) {
-            return;
-        }
-        [self.selectIndexs addObject:@(i)];
-    }
+//    if ([self.selectIndexs containsObject:@(i)]) {
+//        [self.selectIndexs removeObject:@(i)];
+//    } else {
+//        if (self.limitCount != 0 && self.selectIndexs.count >= self.limitCount) {
+//            return;
+//        }
+//        [self.selectIndexs addObject:@(i)];
+//    }
+//
+//    [collectionView reloadData];
 
-    [collectionView reloadData];
-
-    self.title = self.title = [NSString stringWithFormat:@"%lu/%lu",(unsigned long)self.selectIndexs.count,(unsigned long)self.limitCount];
+    //self.title = self.title = [NSString stringWithFormat:@"%lu/%lu",(unsigned long)self.selectIndexs.count,(unsigned long)self.limitCount];
     //self.rightItem.enabled = self.selectIndexs.count > 0;
     if(i == 0)//第一个是相机
     {
@@ -280,6 +280,15 @@ static NSString * const reuseIdentifier = @"Cell";
     
     [self dismissViewControllerAnimated:(YES) completion:^{
                  
+    }];
+}
+
+- (void)imageCropperDidCancel:(PhotoViewController *)cropperViewController{
+    [cropperViewController dismissViewControllerAnimated:YES completion:^{
+        CATransition *animation = [CATransition animation];
+        animation.duration = 0.4f;
+        animation.type = kCATransitionMoveIn;
+        animation.subtype = kCATransitionFromBottom;
     }];
 }
 
