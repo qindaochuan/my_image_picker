@@ -83,9 +83,9 @@ static NSString * const reuseIdentifier = @"Cell";
     UIBarButtonItem *leftItem = [[UIBarButtonItem alloc] initWithTitle:@"取消" style:UIBarButtonItemStylePlain target:self action:@selector(leftItemClick)];
     self.navigationItem.leftBarButtonItem = leftItem;
     
-    self.rightItem = [[UIBarButtonItem alloc] initWithTitle:@"确定" style:UIBarButtonItemStylePlain target:self action:@selector(rightItemClick)];
-    self.navigationItem.rightBarButtonItem = self.rightItem;
-    self.rightItem.enabled = NO;
+//    self.rightItem = [[UIBarButtonItem alloc] initWithTitle:@"确定" style:UIBarButtonItemStylePlain target:self action:@selector(rightItemClick)];
+//    self.navigationItem.rightBarButtonItem = self.rightItem;
+//    self.rightItem.enabled = NO;
     
     [self setupCollectionView];
 
@@ -203,7 +203,7 @@ static NSString * const reuseIdentifier = @"Cell";
     [collectionView reloadData];
     
     self.title = self.title = [NSString stringWithFormat:@"%lu/%lu",(unsigned long)self.selectIndexs.count,(unsigned long)self.limitCount];
-    self.rightItem.enabled = self.selectIndexs.count > 0;
+    //self.rightItem.enabled = self.selectIndexs.count > 0;
 }
 
 - (void)photoCell:(ZLPhotoCell *)cell longPressImage:(UIImage *)image {
