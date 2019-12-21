@@ -15,7 +15,7 @@ A new Flutter plugin.
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/**/*.h'
   s.dependency 'Flutter'
-  s.resources = ["Classes/ZLPickPhoto/ZLPhotoCell.xib", "Classes/ZLPickPhoto/camera.jpg"]
+  s.resources = ["Classes/ZLPickPhoto/ZLPhotoCell.xib", "Classes/ZLPickPhoto/camera.jpg","Classes/ZLPickPhoto/camera.jpg","Classes/imageCropper/icn_back.png"]
   s.ios.deployment_target = '8.0'
 end
 

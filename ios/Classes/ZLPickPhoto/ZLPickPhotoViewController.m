@@ -13,8 +13,9 @@
 #import "ZLPhotoHelper.h"
 #import "ZLPhotoCell.h"
 #import "ZLShowImageViewController.h"
+#import "../imageCropper/PhotoViewController.h"
 
-@interface ZLPickPhotoViewController () <ZLPhotoCellDelegate>
+@interface ZLPickPhotoViewController () <ZLPhotoCellDelegate,UIImagePickerControllerDelegate,UINavigationControllerDelegate,PhotoViewControllerDelegate>
 @property (nonatomic, strong) PHFetchResult *fetchResul;
 @property (nonatomic,strong) NSMutableArray *resultImage;
 @property (nonatomic,strong) NSMutableArray *selectIndexs;
@@ -199,22 +200,86 @@ static NSString * const reuseIdentifier = @"Cell";
         }
         [self.selectIndexs addObject:@(i)];
     }
-    
+
     [collectionView reloadData];
-    
+
     self.title = self.title = [NSString stringWithFormat:@"%lu/%lu",(unsigned long)self.selectIndexs.count,(unsigned long)self.limitCount];
     //self.rightItem.enabled = self.selectIndexs.count > 0;
+    if(i == 0)//第一个是相机
+    {
+        //资源类型为照相机
+        UIImagePickerControllerSourceType sourceType = UIImagePickerControllerSourceTypeCamera;
+        //判断是否有相机
+        if ([UIImagePickerController isSourceTypeAvailable: UIImagePickerControllerSourceTypeCamera]){
+            UIImagePickerController *picker = [[UIImagePickerController alloc] init];
+            picker.delegate = self;
+            picker.sourceType = sourceType;
+            [self presentViewController:picker animated:YES completion:nil];
+        }else {
+            NSLog(@"该设备无摄像头");
+        }
+    }
+    else
+    {
+        PhotoViewController *photoVC = [[PhotoViewController alloc] init];
+               photoVC.oldImage = self.resultImage[indexPath.row];
+           //    photoVC.btnBackgroundColor = COLOR_NAV;
+               //    photoVC.backImage = ;自定义返回按钮图片
+               photoVC.mode = PhotoMaskViewModeCircle;
+               photoVC.cropWidth = CGRectGetWidth(self.view.bounds) - 80;
+               //photoVC.isDark = YES;
+               photoVC.delegate = self;
+           //    photoVC.lineColor = COLOR_NAV;
+        photoVC.modalPresentationStyle = UIModalPresentationFullScreen;
+        [self presentViewController:photoVC animated:(YES) completion:nil];
+        //[self.navigationController pushViewController:photoVC animated:(YES)];
+    }
+}
+
+#pragma mark -  UIImagePickerController Delegate
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingImage:(UIImage *)image editingInfo:(NSDictionary *)editingInfo
+{
+    PhotoViewController *photoVC = [[PhotoViewController alloc] init];
+        photoVC.oldImage = image;
+    //    photoVC.btnBackgroundColor = COLOR_NAV;
+        //    photoVC.backImage = ;自定义返回按钮图片
+        photoVC.mode = PhotoMaskViewModeCircle;
+        photoVC.cropWidth = CGRectGetWidth(self.view.bounds) - 80;
+        //photoVC.isDark = YES;
+        photoVC.delegate = self;
+    //    photoVC.lineColor = COLOR_NAV;
+        [picker pushViewController:photoVC animated:YES];
+}
+
+#pragma mark - photoViewControllerDelegate
+- (void)imageCropper:(PhotoViewController *)cropperViewController didFinished:(UIImage *)editedImage
+{
+    NSData *imagedata = UIImageJPEGRepresentation(editedImage,1.0);
+    NSArray*paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES);
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+    NSString *savedImagePath = [documentsDirectory stringByAppendingPathComponent:@"11.jpg"];
+    [imagedata writeToFile:savedImagePath atomically:YES];
+    [cropperViewController dismissViewControllerAnimated:YES completion:^{
+        CATransition *animation = [CATransition animation];
+        animation.duration = 0.4f;
+        animation.type = kCATransitionMoveIn;
+        animation.subtype = kCATransitionFromBottom;
+        
+        [self dismissViewControllerAnimated:(YES) completion:^{
+              
+        }];
+    }];
 }
 
 - (void)photoCell:(ZLPhotoCell *)cell longPressImage:(UIImage *)image {
-    __weak typeof(self) weakSelf = self;
-    NSIndexPath *indexPath = [self.collectionView indexPathForCell:cell];
-    PHAsset *asset = self.fetchResul[indexPath.row];
-    [[ZLPhotoHelper sharedZLPhotoHelper]getOriginImageWithAsset:asset completion:^(UIImage *photo, NSDictionary *info) {
-        ZLShowImageViewController *vc = [[ZLShowImageViewController alloc] init];
-        vc.image = photo;
-        [weakSelf presentViewController:vc animated:YES completion:nil];
-    }];
+//    __weak typeof(self) weakSelf = self;
+//    NSIndexPath *indexPath = [self.collectionView indexPathForCell:cell];
+//    PHAsset *asset = self.fetchResul[indexPath.row];
+//    [[ZLPhotoHelper sharedZLPhotoHelper]getOriginImageWithAsset:asset completion:^(UIImage *photo, NSDictionary *info) {
+//        ZLShowImageViewController *vc = [[ZLShowImageViewController alloc] init];
+//        vc.image = photo;
+//        [weakSelf presentViewController:vc animated:YES completion:nil];
+//    }];
     
     
 }
