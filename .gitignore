@@ -8,3 +8,4 @@ build/
 android/.idea
 .idea
 example/ios/Runner.xcworkspace/xcshareddata
+.flutter-plugins-dependencies
