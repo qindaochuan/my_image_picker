@@ -44,7 +44,7 @@ public class MyImagePickerDelegate implements PluginRegistry.ActivityResultListe
     private double maxWidth;
     private double maxHeight;
     private int imageQuality;
-    MethodChannel.Result result;
+    public static MethodChannel.Result result = null;
     private String savePath = null;
 
     private File mCurrentFile = null;

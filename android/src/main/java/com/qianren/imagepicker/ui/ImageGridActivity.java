@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -22,6 +24,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.qianren.imagepicker.DataHolder;
 import com.qianren.imagepicker.ImageDataSource;
 import com.qianren.imagepicker.ImagePicker;
+import com.qianren.my_image_picker.MyImagePickerDelegate;
 import com.qianren.my_image_picker.R;
 import com.qianren.imagepicker.adapter.ImageFolderAdapter;
 import com.qianren.imagepicker.adapter.ImageRecyclerAdapter;
@@ -201,6 +204,17 @@ public class ImageGridActivity extends ImageBaseActivity implements ImageDataSou
             startActivityForResult(intent, ImagePicker.REQUEST_CODE_PREVIEW);
         } else if (id == R.id.btn_back) {
             //点击返回按钮
+            Handler thisHandler = new Handler(Looper.getMainLooper());
+            thisHandler.post(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    if(MyImagePickerDelegate.result != null) {
+                        MyImagePickerDelegate.result.success(null);
+                    }
+                }
+            });
             finish();
         }
     }

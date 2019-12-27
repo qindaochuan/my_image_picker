@@ -92,7 +92,8 @@ static NSString * const reuseIdentifier = @"Cell";
     
     [self setupCollectionView];
 
-    self.title = [NSString stringWithFormat:@"0/%lu",(unsigned long)self.limitCount];
+    //self.title = [NSString stringWithFormat:@"0/%lu",(unsigned long)self.limitCount];
+    self.title = @"图片";
 
     __weak typeof(self) weakSelf = self;
     
@@ -105,13 +106,16 @@ static NSString * const reuseIdentifier = @"Cell";
 
 - (void)setupCollectionView {
     self.collectionView.backgroundColor = [UIColor whiteColor];
-    [self.collectionView registerNib:[UINib nibWithNibName:@"ZLPhotoCell" bundle:nil] forCellWithReuseIdentifier:reuseIdentifier];
+    NSBundle *bundle = [NSBundle bundleForClass:self.class];
+    [self.collectionView registerNib:[UINib nibWithNibName:@"ZLPhotoCell" bundle:bundle] forCellWithReuseIdentifier:reuseIdentifier];
 }
 
 - (void)loadPhoto {
     [self.resultImage removeAllObjects];
-    NSBundle *bundle = [NSBundle mainBundle];
-    NSString *path = [bundle pathForResource:@"camera" ofType:@".jpg"];
+    //NSBundle *bundle = [NSBundle mainBundle];
+    //NSString *path = [bundle pathForResource:@"camera" ofType:@".jpg"];
+    NSBundle *bundle = [NSBundle bundleForClass:self.class];
+    NSString *path = [bundle pathForResource:@"camera" ofType:@".png"];
     UIImage *image = [UIImage imageWithContentsOfFile:path];
     [self.resultImage addObject:image];
     __weak typeof(self) weakSelf = self;
@@ -164,6 +168,7 @@ static NSString * const reuseIdentifier = @"Cell";
 
 
 - (void)leftItemClick {
+     self.result(nil);
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
