@@ -190,7 +190,8 @@ public class MyImagePickerDelegate implements PluginRegistry.ActivityResultListe
                 try {
                     Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                     System.out.println(("mCurrentFile: " + mCurrentFile));
-                    Uri photoOutputUri = FileProvider.getUriForFile(activity,"com.qianren.my_image_picker.MyImagePickerFileProvider",mCurrentFile);
+                    String authority = activity.getPackageName()+".MyImagePickerFileProvider";
+                    Uri photoOutputUri = FileProvider.getUriForFile(activity,authority,mCurrentFile);
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                         cameraIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION); //添加这一句表示对目标应用临时授权该Uri所代表的文件
                     }
@@ -263,7 +264,8 @@ public class MyImagePickerDelegate implements PluginRegistry.ActivityResultListe
         }
         else if (requestCode == CAMERA_WITH_DATA) {
             if (mCurrentFile.exists()) {
-                Uri photoOutputUri = FileProvider.getUriForFile(activity,"com.qianren.my_image_picker.MyImagePickerFileProvider",mCurrentFile);
+                String authority = activity.getPackageName()+".MyImagePickerFileProvider";
+                Uri photoOutputUri = FileProvider.getUriForFile(activity,authority,mCurrentFile);
                 clipPhoto(photoOutputUri);// ��ʼ�ü�ͼƬ
             }
 
