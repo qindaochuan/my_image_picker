@@ -381,7 +381,13 @@ public class ImageGridActivity extends ImageBaseActivity implements ImageDataSou
                     setResult(ImagePicker.RESULT_CODE_ITEMS, intent);   //单选不需要裁剪，返回数据
                     finish();
                 }
-            } else if (directPhoto) {
+            }
+            //裁切或者调用相机返回
+            else if(resultCode == RESULT_CANCELED && (requestCode == ImagePicker.REQUEST_CODE_CROP || requestCode == ImagePicker.REQUEST_CODE_TAKE)){
+                finish();
+                startActivityForResult(getIntent(), 100);
+            }
+            else if (directPhoto) {
                 finish();
             }
         }
