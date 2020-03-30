@@ -10,6 +10,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -168,6 +169,27 @@ public class ImageGridActivity extends ImageBaseActivity implements ImageDataSou
     protected void onDestroy() {
         imagePicker.removeOnImageSelectedListener(this);
         super.onDestroy();
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if(event.getAction() == KeyEvent.ACTION_DOWN && KeyEvent.KEYCODE_BACK == keyCode){
+            System.out.println(("点击了物理返回按键"));
+            //点击返回按钮
+            Handler thisHandler = new Handler(Looper.getMainLooper());
+            thisHandler.post(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    if(MyImagePickerDelegate.result != null) {
+                        MyImagePickerDelegate.result.success(null);
+                    }
+                }
+            });
+            finish();
+        }
+        return super.onKeyDown(keyCode, event);
     }
 
     @Override
