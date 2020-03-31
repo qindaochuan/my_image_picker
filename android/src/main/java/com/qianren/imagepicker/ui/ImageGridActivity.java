@@ -193,6 +193,24 @@ public class ImageGridActivity extends ImageBaseActivity implements ImageDataSou
     }
 
     @Override
+    protected void onPause() {
+        System.out.println(("切入后台"));
+        Handler thisHandler = new Handler(Looper.getMainLooper());
+        thisHandler.post(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                if(MyImagePickerDelegate.result != null) {
+                    MyImagePickerDelegate.result.success(null);
+                }
+            }
+        });
+        finish();
+        super.onPause();
+    }
+
+    @Override
     public void onClick(View v) {
         int id = v.getId();
         if (id == R.id.btn_ok) {
