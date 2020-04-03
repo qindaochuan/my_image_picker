@@ -22,7 +22,7 @@
             android:paddingBottom="50dp"
             android:paddingLeft="2dp"
             android:paddingRight="2dp"
-            android:paddingTop="2dp" />
+            android:paddingTop="2dp"/>
 
         <RelativeLayout
             android:id="@+id/footer_bar"

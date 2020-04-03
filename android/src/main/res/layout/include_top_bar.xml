@@ -30,7 +30,7 @@
         android:layout_centerVertical="true"
         android:layout_marginLeft="12dp"
         android:layout_toRightOf="@id/btn_back"
-        android:text="图片"
+        android:text="@string/ip_str_picture"
         android:textAppearance="@style/TextAppearance.AppCompat.Title"
         android:textSize="18sp"
         android:textColor="#ffffff" />
@@ -43,6 +43,7 @@
         android:layout_centerVertical="true"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
+        android:textAllCaps="false"
         android:background="@drawable/selector_top_ok"
         android:minHeight="30dp"
         android:minWidth="48dp"

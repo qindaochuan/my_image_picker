@@ -51,7 +51,7 @@
                 android:drawablePadding="4dp"
                 android:includeFontPadding="true"
                 android:paddingLeft="8dp"
-                android:text="选择"
+                android:text="@string/ip_str_choose"
                 android:textColor="#ffffff" />
         </RelativeLayout>
 
