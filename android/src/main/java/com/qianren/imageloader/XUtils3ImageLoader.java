@@ -15,6 +15,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.widget.ImageView;
 
+
 import com.qianren.imagepicker.loader.ImageLoader;
 import com.qianren.my_image_picker.R;
 

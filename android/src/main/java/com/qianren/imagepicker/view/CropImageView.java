@@ -25,6 +25,7 @@ import android.view.MotionEvent;
 import androidx.appcompat.widget.AppCompatImageView;
 import androidx.core.view.ViewCompat;
 
+
 import com.qianren.my_image_picker.R;
 
 import java.io.File;
@@ -34,71 +35,56 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-/**
- * ================================================
- * 作    者：廖子尧
- * 版    本：1.0
- * 创建日期：2016/1/7
- * 描    述：
- * Matrix 的9个值分别为  缩放  平移  倾斜
- * MSCALE_X	 MSKEW_X	MTRANS_X
- * MSKEW_Y	 MSCALE_Y	MTRANS_Y
- * MPERSP_0  MPERSP_1	MPERSP_2
- * 修订历史：
- * ================================================
- */
 
 public class CropImageView extends AppCompatImageView {
 
-    /******************************** 中间的FocusView绘图相关的参数 *****************************/
     public enum Style {
         RECTANGLE, CIRCLE
     }
 
     private Style[] styles = {Style.RECTANGLE, Style.CIRCLE};
 
-    private int mMaskColor = 0xAF000000;   //暗色
-    private int mBorderColor = 0xAA808080; //焦点框的边框颜色
-    private int mBorderWidth = 1;         //焦点边框的宽度（画笔宽度）
-    private int mFocusWidth = 250;         //焦点框的宽度
-    private int mFocusHeight = 250;        //焦点框的高度
-    private int mDefaultStyleIndex = 0;    //默认焦点框的形状
+    private int mMaskColor = 0xAF000000;
+    private int mBorderColor = 0xAA808080;
+    private int mBorderWidth = 1;
+    private int mFocusWidth = 250;
+    private int mFocusHeight = 250;
+    private int mDefaultStyleIndex = 0;
 
     private Style mStyle = styles[mDefaultStyleIndex];
     private Paint mBorderPaint = new Paint();
     private Path mFocusPath = new Path();
     private RectF mFocusRect = new RectF();
 
-    /******************************** 图片缩放位移控制的参数 ************************************/
-    private static final float MAX_SCALE = 4.0f;  //最大缩放比，图片缩放后的大小与中间选中区域的比值
-    private static final int NONE = 0;   // 初始化
-    private static final int DRAG = 1;   // 拖拽
-    private static final int ZOOM = 2;   // 缩放
-    private static final int ROTATE = 3; // 旋转
-    private static final int ZOOM_OR_ROTATE = 4;  // 缩放或旋转
+    private static final float MAX_SCALE = 4.0f;
+    private static final int NONE = 0;
+    private static final int DRAG = 1;
+    private static final int ZOOM = 2;
+    private static final int ROTATE = 3;
+    private static final int ZOOM_OR_ROTATE = 4;
 
-    private static final int SAVE_SUCCESS = 1001;  // 缩放或旋转
-    private static final int SAVE_ERROR = 1002;  // 缩放或旋转
+    private static final int SAVE_SUCCESS = 1001;
+    private static final int SAVE_ERROR = 1002;
 
     private int mImageWidth;
     private int mImageHeight;
     private int mRotatedImageWidth;
     private int mRotatedImageHeight;
-    private Matrix matrix = new Matrix();      //图片变换的matrix
-    private Matrix savedMatrix = new Matrix(); //开始变幻的时候，图片的matrix
-    private PointF pA = new PointF();          //第一个手指按下点的坐标
-    private PointF pB = new PointF();          //第二个手指按下点的坐标
-    private PointF midPoint = new PointF();    //两个手指的中间点
-    private PointF doubleClickPos = new PointF();  //双击图片的时候，双击点的坐标
-    private PointF mFocusMidPoint = new PointF();  //中间View的中间点
-    private int mode = NONE;            //初始的模式
-    private long doubleClickTime = 0;   //第二次双击的时间
-    private double rotation = 0;        //手指旋转的角度，不是90的整数倍，可能为任意值，需要转换成level
-    private float oldDist = 1;          //双指第一次的距离
-    private int sumRotateLevel = 0;     //旋转的角度，90的整数倍
-    private float mMaxScale = MAX_SCALE;//程序根据不同图片的大小，动态得到的最大缩放比
-    private boolean isInited = false;   //是否经过了 onSizeChanged 初始化
-    private boolean mSaving = false;    //是否正在保存
+    private Matrix matrix = new Matrix();
+    private Matrix savedMatrix = new Matrix();
+    private PointF pA = new PointF();
+    private PointF pB = new PointF();
+    private PointF midPoint = new PointF();
+    private PointF doubleClickPos = new PointF();
+    private PointF mFocusMidPoint = new PointF();
+    private int mode = NONE;
+    private long doubleClickTime = 0;
+    private double rotation = 0;
+    private float oldDist = 1;
+    private int sumRotateLevel = 0;
+    private float mMaxScale = MAX_SCALE;
+    private boolean isInited = false;
+    private boolean mSaving = false;
     private static Handler mHandler = new InnerHandler();
 
     public CropImageView(Context context) {
@@ -115,17 +101,16 @@ public class CropImageView extends AppCompatImageView {
         mFocusHeight = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, mFocusHeight, getResources().getDisplayMetrics());
         mBorderWidth = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, mBorderWidth, getResources().getDisplayMetrics());
 
-        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.CropImageView);
-        mMaskColor = a.getColor(R.styleable.CropImageView_cropMaskColor, mMaskColor);
-        mBorderColor = a.getColor(R.styleable.CropImageView_cropBorderColor, mBorderColor);
-        mBorderWidth = a.getDimensionPixelSize(R.styleable.CropImageView_cropBorderWidth, mBorderWidth);
-        mFocusWidth = a.getDimensionPixelSize(R.styleable.CropImageView_cropFocusWidth, mFocusWidth);
-        mFocusHeight = a.getDimensionPixelSize(R.styleable.CropImageView_cropFocusHeight, mFocusHeight);
-        mDefaultStyleIndex = a.getInteger(R.styleable.CropImageView_cropStyle, mDefaultStyleIndex);
+        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.FreeCropImageView);
+        mMaskColor = a.getColor(R.styleable.FreeCropImageView_cropMaskColor, mMaskColor);
+        mBorderColor = a.getColor(R.styleable.FreeCropImageView_cropBorderColor, mBorderColor);
+        mBorderWidth = a.getDimensionPixelSize(R.styleable.FreeCropImageView_cropBorderWidth, mBorderWidth);
+        mFocusWidth = a.getDimensionPixelSize(R.styleable.FreeCropImageView_cropFocusWidth, mFocusWidth);
+        mFocusHeight = a.getDimensionPixelSize(R.styleable.FreeCropImageView_cropFocusHeight, mFocusHeight);
+        mDefaultStyleIndex = a.getInteger(R.styleable.FreeCropImageView_cropStyle, mDefaultStyleIndex);
         mStyle = styles[mDefaultStyleIndex];
         a.recycle();
 
-        //只允许图片为当前的缩放模式
         setScaleType(ScaleType.MATRIX);
     }
 
@@ -160,7 +145,6 @@ public class CropImageView extends AppCompatImageView {
         initImage();
     }
 
-    /** 初始化图片和焦点框 */
     private void initImage() {
         Drawable d = getDrawable();
         if (!isInited || d == null) return;
@@ -169,7 +153,6 @@ public class CropImageView extends AppCompatImageView {
         matrix = getImageMatrix();
         mImageWidth = mRotatedImageWidth = d.getIntrinsicWidth();
         mImageHeight = mRotatedImageHeight = d.getIntrinsicHeight();
-        //计算出焦点框的中点的坐标和上、下、左、右边的x或y的值
         int viewWidth = getWidth();
         int viewHeight = getHeight();
         float midPointX = viewWidth / 2;
@@ -186,27 +169,20 @@ public class CropImageView extends AppCompatImageView {
         mFocusRect.top = mFocusMidPoint.y - mFocusHeight / 2;
         mFocusRect.bottom = mFocusMidPoint.y + mFocusHeight / 2;
 
-        //适配焦点框的缩放比例（图片的最小边不小于焦点框的最小边）
         float fitFocusScale = getScale(mImageWidth, mImageHeight, mFocusWidth, mFocusHeight, true);
         mMaxScale = fitFocusScale * MAX_SCALE;
-        //适配显示图片的ImageView的缩放比例（图片至少有一边是铺满屏幕的显示的情形）
         float fitViewScale = getScale(mImageWidth, mImageHeight, viewWidth, viewHeight, false);
-        //确定最终的缩放比例,在适配焦点框的前提下适配显示图片的ImageView，
-        //方案：首先满足适配焦点框，如果还能适配显示图片的ImageView，则适配它，即取缩放比例的最大值。
-        //采取这种方案的原因：有可能图片很长或者很高，适配了ImageView的时候可能会宽/高已经小于焦点框的宽/高
         float scale = fitViewScale > fitFocusScale ? fitViewScale : fitFocusScale;
-        //图像中点为中心进行缩放
         matrix.setScale(scale, scale, mImageWidth / 2, mImageHeight / 2);
         float[] mImageMatrixValues = new float[9];
-        matrix.getValues(mImageMatrixValues); //获取缩放后的mImageMatrix的值
-        float transX = mFocusMidPoint.x - (mImageMatrixValues[2] + mImageWidth * mImageMatrixValues[0] / 2);  //X轴方向的位移
-        float transY = mFocusMidPoint.y - (mImageMatrixValues[5] + mImageHeight * mImageMatrixValues[4] / 2); //Y轴方向的位移
+        matrix.getValues(mImageMatrixValues);
+        float transX = mFocusMidPoint.x - (mImageMatrixValues[2] + mImageWidth * mImageMatrixValues[0] / 2);
+        float transY = mFocusMidPoint.y - (mImageMatrixValues[5] + mImageHeight * mImageMatrixValues[4] / 2);
         matrix.postTranslate(transX, transY);
         setImageMatrix(matrix);
         invalidate();
     }
 
-    /** 计算边界缩放比例 isMinScale 是否最小比例，true 最小缩放比例， false 最大缩放比例 */
     private float getScale(int bitmapWidth, int bitmapHeight, int minWidth, int minHeight, boolean isMinScale) {
         float scale;
         float scaleX = (float) minWidth / bitmapWidth;
@@ -219,7 +195,6 @@ public class CropImageView extends AppCompatImageView {
         return scale;
     }
 
-    /** 绘制焦点框 */
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -253,20 +228,20 @@ public class CropImageView extends AppCompatImageView {
             return super.onTouchEvent(event);
         }
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
-            case MotionEvent.ACTION_DOWN:  //第一个点按下
-                savedMatrix.set(matrix);   //以后每次需要变换的时候，以现在的状态为基础进行变换
+            case MotionEvent.ACTION_DOWN:
+                savedMatrix.set(matrix);
                 pA.set(event.getX(), event.getY());
                 pB.set(event.getX(), event.getY());
                 mode = DRAG;
                 break;
-            case MotionEvent.ACTION_POINTER_DOWN:  //第二个点按下
+            case MotionEvent.ACTION_POINTER_DOWN:
                 if (event.getActionIndex() > 1) break;
                 pA.set(event.getX(0), event.getY(0));
                 pB.set(event.getX(1), event.getY(1));
                 midPoint.set((pA.x + pB.x) / 2, (pA.y + pB.y) / 2);
                 oldDist = spacing(pA, pB);
-                savedMatrix.set(matrix);  //以后每次需要变换的时候，以现在的状态为基础进行变换
-                if (oldDist > 10f) mode = ZOOM_OR_ROTATE;//两点之间的距离大于10才有效
+                savedMatrix.set(matrix);
+                if (oldDist > 10f) mode = ZOOM_OR_ROTATE;
                 break;
             case MotionEvent.ACTION_MOVE:
                 if (mode == ZOOM_OR_ROTATE) {
@@ -278,7 +253,6 @@ public class CropImageView extends AppCompatImageView {
                         double cosB = (a * a + c * c - b * b) / (2 * a * c);
                         double angleB = Math.acos(cosB);
                         double PID4 = Math.PI / 4;
-                        //旋转时，默认角度在 45 - 135 度之间
                         if (angleB > PID4 && angleB < 3 * PID4) mode = ROTATE;
                         else mode = ZOOM;
                     }
@@ -292,7 +266,6 @@ public class CropImageView extends AppCompatImageView {
                     float newDist = spacing(event.getX(0), event.getY(0), event.getX(1), event.getY(1));
                     if (newDist > 10f) {
                         matrix.set(savedMatrix);
-                        // 这里之所以用 maxPostScale 矫正一下，主要是防止缩放到最大时，继续缩放图片会产生位移
                         float tScale = Math.min(newDist / oldDist, maxPostScale());
                         if (tScale != 0) {
                             matrix.postScale(tScale, tScale, midPoint.x, midPoint.y);
@@ -353,12 +326,10 @@ public class CropImageView extends AppCompatImageView {
                 mode = NONE;
                 break;
         }
-        //解决部分机型无法拖动的问题
         ViewCompat.postInvalidateOnAnimation(this);
         return true;
     }
 
-    /** 修正图片的缩放比 */
     private void fixScale() {
         float imageMatrixValues[] = new float[9];
         matrix.getValues(imageMatrixValues);
@@ -366,7 +337,6 @@ public class CropImageView extends AppCompatImageView {
         float minScale = getScale(mRotatedImageWidth, mRotatedImageHeight, mFocusWidth, mFocusHeight, true);
         mMaxScale = minScale * MAX_SCALE;
 
-        //保证图片最小是占满中间的焦点空间
         if (currentScale < minScale) {
             float scale = minScale / currentScale;
             matrix.postScale(scale, scale);
@@ -376,10 +346,9 @@ public class CropImageView extends AppCompatImageView {
         }
     }
 
-    /** 修正图片的位移 */
     private void fixTranslation() {
         RectF imageRect = new RectF(0, 0, mImageWidth, mImageHeight);
-        matrix.mapRect(imageRect);  //获取当前图片（缩放以后的）相对于当前控件的位置区域，超过控件的上边缘或左边缘为负
+        matrix.mapRect(imageRect);
         float deltaX = 0, deltaY = 0;
         if (imageRect.left > mFocusRect.left) {
             deltaX = -imageRect.left + mFocusRect.left;
@@ -394,7 +363,6 @@ public class CropImageView extends AppCompatImageView {
         matrix.postTranslate(deltaX, deltaY);
     }
 
-    /** 获取当前图片允许的最大缩放比 */
     private float maxPostScale() {
         float imageMatrixValues[] = new float[9];
         matrix.getValues(imageMatrixValues);
@@ -402,26 +370,22 @@ public class CropImageView extends AppCompatImageView {
         return mMaxScale / curScale;
     }
 
-    /** 计算两点之间的距离 */
     private float spacing(float x1, float y1, float x2, float y2) {
         float x = x1 - x2;
         float y = y1 - y2;
         return (float) Math.sqrt(x * x + y * y);
     }
 
-    /** 计算两点之间的距离 */
     private float spacing(PointF pA, PointF pB) {
         return spacing(pA.x, pA.y, pB.x, pB.y);
     }
 
-    /** 双击触发的方法 */
     private void doubleClick(float x, float y) {
         float p[] = new float[9];
         matrix.getValues(p);
         float curScale = Math.abs(p[0]) + Math.abs(p[1]);
         float minScale = getScale(mRotatedImageWidth, mRotatedImageHeight, mFocusWidth, mFocusHeight, true);
         if (curScale < mMaxScale) {
-            //每次双击的时候，缩放加 minScale
             float toScale = Math.min(curScale + minScale, mMaxScale) / curScale;
             matrix.postScale(toScale, toScale, x, y);
         } else {
@@ -432,24 +396,15 @@ public class CropImageView extends AppCompatImageView {
         setImageMatrix(matrix);
     }
 
-    /**
-     * @param expectWidth     期望的宽度
-     * @param exceptHeight    期望的高度
-     * @param isSaveRectangle 是否按矩形区域保存图片
-     * @return 裁剪后的Bitmap
-     */
+
     public Bitmap getCropBitmap(int expectWidth, int exceptHeight, boolean isSaveRectangle) {
         if (expectWidth <= 0 || exceptHeight < 0) return null;
         Bitmap srcBitmap = ((BitmapDrawable) getDrawable()).getBitmap();
-        srcBitmap = rotate(srcBitmap, sumRotateLevel * 90);  //最好用level，因为角度可能不是90的整数
+        srcBitmap = rotate(srcBitmap, sumRotateLevel * 90);
         return makeCropBitmap(srcBitmap, mFocusRect, getImageMatrixRect(), expectWidth, exceptHeight, isSaveRectangle);
     }
 
-    /**
-     * @param bitmap  要旋转的图片
-     * @param degrees 选择的角度（单位 度）
-     * @return 旋转后的Bitmap
-     */
+
     public Bitmap rotate(Bitmap bitmap, int degrees) {
         if (degrees != 0 && bitmap != null) {
             Matrix matrix = new Matrix();
@@ -457,7 +412,6 @@ public class CropImageView extends AppCompatImageView {
             try {
                 Bitmap rotateBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
                 if (bitmap != rotateBitmap) {
-//                    bitmap.recycle();
                     return rotateBitmap;
                 }
             } catch (OutOfMemoryError ex) {
@@ -467,9 +421,7 @@ public class CropImageView extends AppCompatImageView {
         return bitmap;
     }
 
-    /**
-     * @return 获取当前图片显示的矩形区域
-     */
+
     private RectF getImageMatrixRect() {
         RectF rectF = new RectF();
         rectF.set(0, 0, getDrawable().getIntrinsicWidth(), getDrawable().getIntrinsicHeight());
@@ -477,15 +429,7 @@ public class CropImageView extends AppCompatImageView {
         return rectF;
     }
 
-    /**
-     * @param bitmap          需要裁剪的图片
-     * @param focusRect       中间需要裁剪的矩形区域
-     * @param imageMatrixRect 当前图片在屏幕上的显示矩形区域
-     * @param expectWidth     希望获得的图片宽度，如果图片宽度不足时，拉伸图片
-     * @param exceptHeight    希望获得的图片高度，如果图片高度不足时，拉伸图片
-     * @param isSaveRectangle 是否希望按矩形区域保存图片
-     * @return 裁剪后的图片的Bitmap
-     */
+
     private Bitmap makeCropBitmap(Bitmap bitmap, RectF focusRect, RectF imageMatrixRect, int expectWidth, int exceptHeight, boolean isSaveRectangle) {
         if (imageMatrixRect == null || bitmap == null){
             return null;
@@ -506,7 +450,6 @@ public class CropImageView extends AppCompatImageView {
             if (expectWidth != width || exceptHeight != height) {
                 bitmap = Bitmap.createScaledBitmap(bitmap, expectWidth, exceptHeight, true);
                 if (mStyle == CropImageView.Style.CIRCLE && !isSaveRectangle) {
-                    //如果是圆形，就将图片裁剪成圆的
                     int length = Math.min(expectWidth, exceptHeight);
                     int radius = length / 2;
                     Bitmap circleBitmap = Bitmap.createBitmap(length, length, Bitmap.Config.ARGB_8888);
@@ -524,12 +467,6 @@ public class CropImageView extends AppCompatImageView {
         return bitmap;
     }
 
-    /**
-     * @param folder          希望保存的文件夹
-     * @param expectWidth     希望保存的图片宽度
-     * @param exceptHeight    希望保存的图片高度
-     * @param isSaveRectangle 是否希望按矩形区域保存图片
-     */
     public void saveBitmapToFile(File folder, int expectWidth, int exceptHeight, boolean isSaveRectangle) {
         if (mSaving) return;
         mSaving = true;
@@ -550,11 +487,10 @@ public class CropImageView extends AppCompatImageView {
         }.start();
     }
 
-    /** 根据系统时间、前缀、后缀产生一个文件 */
     private File createFile(File folder, String prefix, String suffix) {
         if (!folder.exists() || !folder.isDirectory()) folder.mkdirs();
         try {
-            File nomedia = new File(folder, ".nomedia");  //在当前文件夹底下创建一个 .nomedia 文件
+            File nomedia = new File(folder, ".nomedia");
             if (!nomedia.exists()) nomedia.createNewFile();
         } catch (IOException e) {
             e.printStackTrace();
@@ -564,7 +500,6 @@ public class CropImageView extends AppCompatImageView {
         return new File(folder, filename);
     }
 
-    /** 将图片保存在本地 */
     private void saveOutput(Bitmap croppedImage, Bitmap.CompressFormat outputFormat, File saveFile) {
         OutputStream outputStream = null;
         try {
@@ -606,7 +541,6 @@ public class CropImageView extends AppCompatImageView {
         }
     }
 
-    /** 图片保存完成的监听 */
     private static OnBitmapSaveCompleteListener mListener;
 
     public interface OnBitmapSaveCompleteListener {
@@ -619,68 +553,56 @@ public class CropImageView extends AppCompatImageView {
         mListener = listener;
     }
 
-    /** 返回焦点框宽度 */
     public int getFocusWidth() {
         return mFocusWidth;
     }
 
-    /** 设置焦点框的宽度 */
     public void setFocusWidth(int width) {
         mFocusWidth = width;
         initImage();
     }
 
-    /** 获取焦点框的高度 */
     public int getFocusHeight() {
         return mFocusHeight;
     }
 
-    /** 设置焦点框的高度 */
     public void setFocusHeight(int height) {
         mFocusHeight = height;
         initImage();
     }
 
-    /** 返回阴影颜色 */
     public int getMaskColor() {
         return mMaskColor;
     }
 
-    /** 设置阴影颜色 */
     public void setMaskColor(int color) {
         mMaskColor = color;
         invalidate();
     }
 
-    /** 返回焦点框边框颜色 */
     public int getFocusColor() {
         return mBorderColor;
     }
 
-    /** 设置焦点框边框颜色 */
     public void setBorderColor(int color) {
         mBorderColor = color;
         invalidate();
     }
 
-    /** 返回焦点框边框绘制宽度 */
     public float getBorderWidth() {
         return mBorderWidth;
     }
 
-    /** 设置焦点边框宽度 */
     public void setBorderWidth(int width) {
         mBorderWidth = width;
         invalidate();
     }
 
-    /** 设置焦点框的形状 */
     public void setFocusStyle(Style style) {
         this.mStyle = style;
         invalidate();
     }
 
-    /** 获取焦点框的形状 */
     public Style getFocusStyle() {
         return mStyle;
     }

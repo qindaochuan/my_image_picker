@@ -12,18 +12,8 @@ import android.view.KeyEvent;
 import android.view.ViewConfiguration;
 import android.view.WindowManager;
 
-/**
- * ================================================
- * 作    者：jeasonlzy（廖子尧 Github地址：https://github.com/jeasonlzy0216
- * 版    本：1.0
- * 创建日期：2016/5/19
- * 描    述：
- * 修订历史：
- * ================================================
- */
 public class Utils {
 
-    /** 获得状态栏的高度 */
     public static int getStatusHeight(Context context) {
         int statusHeight = -1;
         try {
@@ -37,7 +27,6 @@ public class Utils {
         return statusHeight;
     }
 
-    /** 根据屏幕宽度与密度计算GridView显示的列数， 最少为三列，并获取Item宽度 */
     public static int getImageItemWidth(Activity activity) {
         int screenWidth = activity.getResources().getDisplayMetrics().widthPixels;
         int densityDpi = activity.getResources().getDisplayMetrics().densityDpi;
@@ -47,30 +36,22 @@ public class Utils {
         return (screenWidth - columnSpace * (cols - 1)) / cols;
     }
 
-    /**
-     * 判断SDCard是否可用
-     */
+
     public static boolean existSDCard() {
         return Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
     }
 
-    /**
-     * 获取手机大小（分辨率）
-     */
+
     public static DisplayMetrics getScreenPix(Activity activity) {
         DisplayMetrics displaysMetrics = new DisplayMetrics();
         activity.getWindowManager().getDefaultDisplay().getMetrics(displaysMetrics);
         return displaysMetrics;
     }
 
-    /** dp转px */
     public static int dp2px(Context context, float dpVal) {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dpVal, context.getResources().getDisplayMetrics());
     }
 
-    /**
-     * 判断手机是否含有虚拟按键  99%
-     */
     public static boolean hasVirtualNavigationBar(Context context) {
         boolean hasSoftwareKeys = true;
 
@@ -99,9 +80,7 @@ public class Utils {
         return hasSoftwareKeys;
     }
 
-    /**
-     * 获取导航栏高度，有些没有虚拟导航栏的手机也能获取到，建议先判断是否有虚拟按键
-     */
+
     public static int getNavigationBarHeight(Context context) {
         int resourceId = context.getResources().getIdentifier("navigation_bar_height", "dimen", "android");
         return resourceId > 0 ? context.getResources().getDimensionPixelSize(resourceId) : 0;

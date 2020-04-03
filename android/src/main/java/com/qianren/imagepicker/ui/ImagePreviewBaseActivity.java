@@ -8,30 +8,22 @@ import android.widget.TextView;
 
 import com.qianren.imagepicker.DataHolder;
 import com.qianren.imagepicker.ImagePicker;
-import com.qianren.my_image_picker.R;
 import com.qianren.imagepicker.adapter.ImagePageAdapter;
 import com.qianren.imagepicker.bean.ImageItem;
 import com.qianren.imagepicker.util.Utils;
 import com.qianren.imagepicker.view.ViewPagerFixed;
+import com.qianren.my_image_picker.R;
 
 import java.util.ArrayList;
 
-/**
- * ================================================
- * 作    者：jeasonlzy（廖子尧 Github地址：https://github.com/jeasonlzy0216
- * 版    本：1.0
- * 创建日期：2016/5/19
- * 描    述：
- * 修订历史：图片预览的基类
- * ================================================
- */
+
 public abstract class ImagePreviewBaseActivity extends ImageBaseActivity {
 
     protected ImagePicker imagePicker;
-    protected ArrayList<ImageItem> mImageItems;      //跳转进ImagePreviewFragment的图片文件夹
-    protected int mCurrentPosition = 0;              //跳转进ImagePreviewFragment时的序号，第几个图片
-    protected TextView mTitleCount;                  //显示当前图片的位置  例如  5/31
-    protected ArrayList<ImageItem> selectedImages;   //所有已经选中的图片
+    protected ArrayList<ImageItem> mImageItems;
+    protected int mCurrentPosition = 0;
+    protected TextView mTitleCount;
+    protected ArrayList<ImageItem> selectedImages;
     protected View content;
     protected View topBar;
     protected ViewPagerFixed mViewPager;
@@ -47,20 +39,16 @@ public abstract class ImagePreviewBaseActivity extends ImageBaseActivity {
         isFromItems = getIntent().getBooleanExtra(ImagePicker.EXTRA_FROM_ITEMS, false);
 
         if (isFromItems) {
-            // 据说这样会导致大量图片崩溃
             mImageItems = (ArrayList<ImageItem>) getIntent().getSerializableExtra(ImagePicker.EXTRA_IMAGE_ITEMS);
         } else {
-            // 下面采用弱引用会导致预览崩溃
             mImageItems = (ArrayList<ImageItem>) DataHolder.getInstance().retrieve(DataHolder.DH_CURRENT_IMAGE_FOLDER_ITEMS);
         }
 
         imagePicker = ImagePicker.getInstance();
         selectedImages = imagePicker.getSelectedImages();
 
-        //初始化控件
         content = findViewById(R.id.content);
 
-        //因为状态栏透明后，布局整体会上移，所以给头部加上状态栏的margin值，保证头部不会被覆盖
         topBar = findViewById(R.id.top_bar);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) topBar.getLayoutParams();
@@ -88,11 +76,9 @@ public abstract class ImagePreviewBaseActivity extends ImageBaseActivity {
         mViewPager.setAdapter(mAdapter);
         mViewPager.setCurrentItem(mCurrentPosition, false);
 
-        //初始化当前页面的状态
         mTitleCount.setText(getString(R.string.ip_preview_image_count, mCurrentPosition + 1, mImageItems.size()));
     }
 
-    /** 单击时，隐藏头和尾 */
     public abstract void onImageSingleTap();
 
     @Override

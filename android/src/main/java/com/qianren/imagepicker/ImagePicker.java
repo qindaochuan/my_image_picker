@@ -5,23 +5,24 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.util.Log;
 
 import androidx.core.content.FileProvider;
 
+import com.isseiaoki.simplecropview.FreeCropImageView;
 import com.qianren.imagepicker.bean.ImageFolder;
 import com.qianren.imagepicker.bean.ImageItem;
 import com.qianren.imagepicker.loader.ImageLoader;
+import com.qianren.imagepicker.util.InnerToaster;
 import com.qianren.imagepicker.util.ProviderUtil;
 import com.qianren.imagepicker.util.Utils;
 import com.qianren.imagepicker.view.CropImageView;
+import com.qianren.my_image_picker.R;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -30,19 +31,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * ================================================
- * 作    者：jeasonlzy（廖子尧 Github地址：https://github.com/jeasonlzy0216
- * 版    本：1.0
- * 创建日期：2016/5/19
- * 描    述：图片选择的入口类
- * 修订历史：
- * 2017-03-20
- *
- * @author nanchen
- *         采用单例和弱引用解决Intent传值限制导致的异常
- *         ================================================
- */
+
 public class ImagePicker {
 
     public static final String TAG = ImagePicker.class.getSimpleName();
@@ -57,27 +46,29 @@ public class ImagePicker {
     public static final String EXTRA_IMAGE_ITEMS = "extra_image_items";
     public static final String EXTRA_FROM_ITEMS = "extra_from_items";
 
-    private boolean multiMode = true;    //图片选择模式
-    private int selectLimit = 9;         //最大选择图片数量
-    private boolean crop = true;         //裁剪
-    private boolean showCamera = true;   //显示相机
-    private boolean isSaveRectangle = false;  //裁剪后的图片是否是矩形，否者跟随裁剪框的形状
-    private int outPutX = 800;           //裁剪保存宽度
-    private int outPutY = 800;           //裁剪保存高度
-    private int focusWidth = 280;         //焦点框的宽度
-    private int focusHeight = 280;        //焦点框的高度
-    private ImageLoader imageLoader;     //图片加载器
-    private CropImageView.Style style = CropImageView.Style.RECTANGLE; //裁剪框的形状
+    private boolean multiMode = true;
+    private int selectLimit = 9;
+    private boolean crop = true;
+    private boolean showCamera = true;
+    private boolean isSaveRectangle = false;
+    private int outPutX = 800;
+    private int outPutY = 800;
+    private int focusWidth = 280;
+    private int focusHeight = 280;
+    private ImageLoader imageLoader;
+    private CropImageView.Style style = CropImageView.Style.RECTANGLE;
     private File cropCacheFolder;
     private File takeImageFile;
-    public Bitmap cropBitmap;
 
-    private ArrayList<ImageItem> mSelectedImages = new ArrayList<>();   //选中的图片集合
-    private List<ImageFolder> mImageFolders;      //所有的图片文件夹
-    private int mCurrentImageFolderPosition = 0;  //当前选中的文件夹位置 0表示所有图片
-    private List<OnImageSelectedListener> mImageSelectedListeners;          // 图片选中的监听回调
+    public FreeCropImageView.CropMode mFreeCropMode = com.isseiaoki.simplecropview.FreeCropImageView.CropMode.FREE;
+    public boolean isFreeCrop = false;
+    private ArrayList<ImageItem> mSelectedImages = new ArrayList<>();
+    private List<ImageFolder> mImageFolders;
+    private int mCurrentImageFolderPosition = 0;
+    private List<OnImageSelectedListener> mImageSelectedListeners;
 
     private static ImagePicker mInstance;
+
 
     private ImagePicker() {
     }
@@ -171,8 +162,9 @@ public class ImagePicker {
 
     public File getCropCacheFolder(Context context) {
         if (cropCacheFolder == null) {
-            cropCacheFolder = new File(context.getCacheDir() + "/ImagePicker/cropTemp/");
+            cropCacheFolder = new File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/cropTemp/");
         }
+        if (!cropCacheFolder.exists() || !cropCacheFolder.isDirectory()) cropCacheFolder.mkdirs();
         return cropCacheFolder;
     }
 
@@ -250,33 +242,27 @@ public class ImagePicker {
         mCurrentImageFolderPosition = 0;
     }
 
-    /**
-     * 拍照的方法
-     */
+
     public void takePicture(Activity activity, int requestCode) {
+        PackageManager packageManager = activity.getPackageManager();
+        if (!packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
+            InnerToaster.obj(activity).show(R.string.ip_str_no_camera);
+            return;
+        }
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         takePictureIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         if (takePictureIntent.resolveActivity(activity.getPackageManager()) != null) {
-            if (Utils.existSDCard()) takeImageFile = new File(Environment.getExternalStorageDirectory(), "/DCIM/camera/");
+            if (Utils.existSDCard())
+                takeImageFile = new File(Environment.getExternalStorageDirectory(), "/DCIM/camera/");
             else takeImageFile = Environment.getDataDirectory();
             takeImageFile = createFile(takeImageFile, "IMG_", ".jpg");
             if (takeImageFile != null) {
-                // 默认情况下，即不需要指定intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
-                // 照相机有自己默认的存储路径，拍摄的照片将返回一个缩略图。如果想访问原始图片，
-                // 可以通过dat extra能够得到原始图片位置。即，如果指定了目标uri，data就没有数据，
-                // 如果没有指定uri，则data就返回有数据！
-
                 Uri uri;
                 if (VERSION.SDK_INT <= VERSION_CODES.M) {
                     uri = Uri.fromFile(takeImageFile);
                 } else {
 
-                    /**
-                     * 7.0 调用系统相机拍照不再允许使用Uri方式，应该替换为FileProvider
-                     * 并且这样可以解决MIUI系统上拍照返回size为0的情况
-                     */
                     uri = FileProvider.getUriForFile(activity, ProviderUtil.getFileProviderName(activity), takeImageFile);
-                    //加入uri权限 要不三星手机不能拍照
                     List<ResolveInfo> resInfoList = activity.getPackageManager().queryIntentActivities(takePictureIntent, PackageManager.MATCH_DEFAULT_ONLY);
                     for (ResolveInfo resolveInfo : resInfoList) {
                         String packageName = resolveInfo.activityInfo.packageName;
@@ -284,16 +270,12 @@ public class ImagePicker {
                     }
                 }
 
-                Log.e("nanchen", ProviderUtil.getFileProviderName(activity));
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
             }
         }
         activity.startActivityForResult(takePictureIntent, requestCode);
     }
 
-    /**
-     * 根据系统时间、前缀、后缀产生一个文件
-     */
     public static File createFile(File folder, String prefix, String suffix) {
         if (!folder.exists() || !folder.isDirectory()) folder.mkdirs();
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.CHINA);
@@ -301,9 +283,7 @@ public class ImagePicker {
         return new File(folder, filename);
     }
 
-    /**
-     * 扫描图片
-     */
+
     public static void galleryAddPic(Context context, File file) {
         Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
         Uri contentUri = Uri.fromFile(file);
@@ -311,9 +291,6 @@ public class ImagePicker {
         context.sendBroadcast(mediaScanIntent);
     }
 
-    /**
-     * 图片选中的监听
-     */
     public interface OnImageSelectedListener {
         void onImageSelected(int position, ImageItem item, boolean isAdd);
     }
@@ -348,9 +325,6 @@ public class ImagePicker {
         }
     }
 
-    /**
-     * 用于手机内存不足，进程被系统回收，重启时的状态恢复
-     */
     public void restoreInstanceState(Bundle savedInstanceState) {
         cropCacheFolder = (File) savedInstanceState.getSerializable("cropCacheFolder");
         takeImageFile = (File) savedInstanceState.getSerializable("takeImageFile");
@@ -367,9 +341,7 @@ public class ImagePicker {
         focusHeight = savedInstanceState.getInt("focusHeight");
     }
 
-    /**
-     * 用于手机内存不足，进程被系统回收时的状态保存
-     */
+
     public void saveInstanceState(Bundle outState) {
         outState.putSerializable("cropCacheFolder", cropCacheFolder);
         outState.putSerializable("takeImageFile", takeImageFile);
@@ -386,4 +358,13 @@ public class ImagePicker {
         outState.putInt("focusHeight", focusHeight);
     }
 
+
+    public void setIToaster(Context aContext, InnerToaster.IToaster aIToaster) {
+        InnerToaster.obj(aContext).setIToaster(aIToaster);
+    }
+
+    public void setFreeCrop(boolean need, FreeCropImageView.CropMode aCropMode) {
+        mFreeCropMode = aCropMode;
+        isFreeCrop = need;
+    }
 }

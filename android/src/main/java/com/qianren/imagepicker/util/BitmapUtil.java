@@ -11,14 +11,6 @@ import android.provider.MediaStore;
 import java.io.File;
 import java.io.IOException;
 
-/**
- *
- * Bitmap工具类，主要是解决拍照旋转的适配
- *
- * Author: nanchen
- * Email: liushilin520@foxmail.com
- * Date: 2017-03-20  13:27
- */
 
 public class BitmapUtil {
 
@@ -26,18 +18,11 @@ public class BitmapUtil {
         throw new UnsupportedOperationException("u can't instantiate me...");
     }
 
-    /**
-     * 获取图片的旋转角度
-     *
-     * @param path 图片绝对路径
-     * @return 图片的旋转角度
-     */
+
     public static int getBitmapDegree(String path) {
         int degree = 0;
         try {
-            // 从指定路径下读取图片，并获取其EXIF信息
             ExifInterface exifInterface = new ExifInterface(path);
-            // 获取图片的旋转信息
             int orientation = exifInterface.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
             switch (orientation) {
                 case ExifInterface.ORIENTATION_ROTATE_90:
@@ -56,18 +41,10 @@ public class BitmapUtil {
         return degree;
     }
 
-    /**
-     * 将图片按照指定的角度进行旋转
-     *
-     * @param bitmap 需要旋转的图片
-     * @param degree 指定的旋转角度
-     * @return 旋转后的图片
-     */
+
     public static Bitmap rotateBitmapByDegree(Bitmap bitmap, int degree) {
-        // 根据旋转角度，生成旋转矩阵
         Matrix matrix = new Matrix();
         matrix.postRotate(degree);
-        // 将原始图片按照旋转矩阵进行旋转，并得到新的图片
         Bitmap newBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
         if (!bitmap.isRecycled()) {
             bitmap.recycle();
@@ -75,12 +52,7 @@ public class BitmapUtil {
         return newBitmap;
     }
 
-    /**
-     * 获取我们需要的整理过旋转角度的Uri
-     * @param activity  上下文环境
-     * @param path      路径
-     * @return          正常的Uri
-     */
+
     public static Uri getRotatedUri(Activity activity, String path){
         int degree = BitmapUtil.getBitmapDegree(path);
         if (degree != 0){
@@ -92,13 +64,7 @@ public class BitmapUtil {
         }
     }
 
-    /**
-     * 将图片按照指定的角度进行旋转
-     *
-     * @param path   需要旋转的图片的路径
-     * @param degree 指定的旋转角度
-     * @return 旋转后的图片
-     */
+
     public static Bitmap rotateBitmapByDegree(String path, int degree) {
         Bitmap bitmap = BitmapFactory.decodeFile(path);
         return rotateBitmapByDegree(bitmap,degree);

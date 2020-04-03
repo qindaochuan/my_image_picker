@@ -17,15 +17,7 @@ import android.widget.PopupWindow;
 
 import com.qianren.my_image_picker.R;
 
-/**
- * ================================================
- * 作    者：jeasonlzy（廖子尧）Github地址：https://github.com/jeasonlzy0216
- * 版    本：1.0
- * 创建日期：16/8/1
- * 描    述：
- * 修订历史：
- * ================================================
- */
+
 public class FolderPopUpWindow extends PopupWindow implements View.OnClickListener {
 
     private ListView listView;
@@ -46,7 +38,7 @@ public class FolderPopUpWindow extends PopupWindow implements View.OnClickListen
         listView.setAdapter(adapter);
 
         setContentView(view);
-        setWidth(ViewGroup.LayoutParams.MATCH_PARENT);  //如果不设置，就是 AnchorView 的宽度
+        setWidth(ViewGroup.LayoutParams.MATCH_PARENT);
         setHeight(ViewGroup.LayoutParams.MATCH_PARENT);
         setFocusable(true);
         setOutsideTouchable(true);

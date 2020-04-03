@@ -6,11 +6,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.util.Log;
 import android.view.Gravity;
-import android.view.KeyEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -22,37 +18,24 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+
 import com.qianren.imagepicker.DataHolder;
 import com.qianren.imagepicker.ImageDataSource;
 import com.qianren.imagepicker.ImagePicker;
-import com.qianren.my_image_picker.MyImagePickerDelegate;
-import com.qianren.my_image_picker.R;
 import com.qianren.imagepicker.adapter.ImageFolderAdapter;
 import com.qianren.imagepicker.adapter.ImageRecyclerAdapter;
-import com.qianren.imagepicker.adapter.ImageRecyclerAdapter.OnImageItemClickListener;
 import com.qianren.imagepicker.bean.ImageFolder;
 import com.qianren.imagepicker.bean.ImageItem;
 import com.qianren.imagepicker.util.Utils;
 import com.qianren.imagepicker.view.FolderPopUpWindow;
 import com.qianren.imagepicker.view.GridSpacingItemDecoration;
+import com.qianren.my_image_picker.R;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * ================================================
- * 作    者：jeasonlzy（廖子尧 Github地址：https://github.com/jeasonlzy0216
- * 版    本：1.0
- * 创建日期：2016/5/19
- * 描    述：
- * 修订历史：
- * 2017-03-17
- *
- * @author nanchen
- *         新增可直接传递是否裁剪参数，以及直接拍照
- *         ================================================
- */
-public class ImageGridActivity extends ImageBaseActivity implements ImageDataSource.OnImagesLoadedListener, OnImageItemClickListener, ImagePicker.OnImageSelectedListener, View.OnClickListener {
+
+public class ImageGridActivity extends ImageBaseActivity implements ImageDataSource.OnImagesLoadedListener, ImageRecyclerAdapter.OnImageItemClickListener, ImagePicker.OnImageSelectedListener, View.OnClickListener {
 
     public static final int REQUEST_PERMISSION_STORAGE = 0x01;
     public static final int REQUEST_PERMISSION_CAMERA = 0x02;
@@ -61,17 +44,16 @@ public class ImageGridActivity extends ImageBaseActivity implements ImageDataSou
 
     private ImagePicker imagePicker;
 
-    private boolean isOrigin = false;  //是否选中原图
-    private View mFooterBar;     //底部栏
-    private Button mBtnOk;       //确定按钮
-    private View mllDir; //文件夹切换按钮
-    private TextView mtvDir; //显示当前文件夹
-    private TextView mBtnPre;      //预览按钮
-    private ImageFolderAdapter mImageFolderAdapter;    //图片文件夹的适配器
-    private FolderPopUpWindow mFolderPopupWindow;  //ImageSet的PopupWindow
-    private List<ImageFolder> mImageFolders;   //所有的图片文件夹
-    //    private ImageGridAdapter mImageGridAdapter;  //图片九宫格展示的适配器
-    private boolean directPhoto = false; // 默认不是直接调取相机
+    private boolean isOrigin = false;
+    private View mFooterBar;
+    private Button mBtnOk;
+    private View mllDir;
+    private TextView mtvDir;
+    private TextView mBtnPre;
+    private ImageFolderAdapter mImageFolderAdapter;
+    private FolderPopUpWindow mFolderPopupWindow;
+    private List<ImageFolder> mImageFolders;
+    private boolean directPhoto = false;
     private RecyclerView mRecyclerView;
     private ImageRecyclerAdapter mRecyclerAdapter;
 
@@ -95,17 +77,16 @@ public class ImageGridActivity extends ImageBaseActivity implements ImageDataSou
         imagePicker = ImagePicker.getInstance();
         imagePicker.clear();
         imagePicker.addOnImageSelectedListener(this);
+        if (imagePicker.getSelectLimit() == 0 || imagePicker.getSelectLimit() == 1) {
+            imagePicker.setSelectLimit(1);
+            imagePicker.setMultiMode(false);
+        }
 
         Intent data = getIntent();
-        // 新增可直接拍照
         if (data != null && data.getExtras() != null) {
-            directPhoto = data.getBooleanExtra(EXTRAS_TAKE_PICKERS, false); // 默认不是直接打开相机
+            directPhoto = data.getBooleanExtra(EXTRAS_TAKE_PICKERS, false);
             if (directPhoto) {
-                if (!(checkPermission(Manifest.permission.CAMERA))) {
-                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, ImageGridActivity.REQUEST_PERMISSION_CAMERA);
-                } else {
-                    imagePicker.takePicture(this, ImagePicker.REQUEST_CODE_TAKE);
-                }
+                checkToCapture();
             }
             ArrayList<ImageItem> images = (ArrayList<ImageItem>) data.getSerializableExtra(EXTRAS_IMAGES);
             imagePicker.setSelectedImages(images);
@@ -130,10 +111,10 @@ public class ImageGridActivity extends ImageBaseActivity implements ImageDataSou
             mBtnPre.setVisibility(View.GONE);
         }
 
-//        mImageGridAdapter = new ImageGridAdapter(this, null);
         mImageFolderAdapter = new ImageFolderAdapter(this, null);
         mRecyclerAdapter = new ImageRecyclerAdapter(this, null);
-
+        mRecyclerView.setLayoutManager(new GridLayoutManager(this, 3));
+        mRecyclerView.setAdapter(mRecyclerAdapter);
         onImageSelected(0, null, false);
 
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN) {
@@ -145,6 +126,16 @@ public class ImageGridActivity extends ImageBaseActivity implements ImageDataSou
         } else {
             new ImageDataSource(this, null, this);
         }
+
+    }
+
+    private void checkToCapture() {
+        if (!(checkPermission(Manifest.permission.CAMERA)) || !checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE}, ImageGridActivity.REQUEST_PERMISSION_CAMERA);
+        } else {
+            imagePicker.takePicture(this, ImagePicker.REQUEST_CODE_TAKE);
+        }
     }
 
     @Override
@@ -154,13 +145,19 @@ public class ImageGridActivity extends ImageBaseActivity implements ImageDataSou
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 new ImageDataSource(this, null, this);
             } else {
-                showToast("权限被禁止，无法选择本地图片");
+                showToast(getString(R.string.ip_str_no_permission));
             }
         } else if (requestCode == REQUEST_PERMISSION_CAMERA) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            boolean denied = false;
+            for (int grantResult : grantResults) {
+                if (grantResult != PackageManager.PERMISSION_GRANTED) {
+                    denied = true;
+                }
+            }
+            if (!denied) {
                 imagePicker.takePicture(this, ImagePicker.REQUEST_CODE_TAKE);
             } else {
-                showToast("权限被禁止，无法打开相机");
+                showToast(getString(R.string.ip_str_no_camera_permission));
             }
         }
     }
@@ -172,65 +169,23 @@ public class ImageGridActivity extends ImageBaseActivity implements ImageDataSou
     }
 
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if(event.getAction() == KeyEvent.ACTION_DOWN && KeyEvent.KEYCODE_BACK == keyCode){
-            System.out.println(("点击了物理返回按键"));
-            //点击返回按钮
-            Handler thisHandler = new Handler(Looper.getMainLooper());
-            thisHandler.post(new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    if(MyImagePickerDelegate.result != null) {
-                        MyImagePickerDelegate.result.success(null);
-                    }
-                }
-            });
-            finish();
-        }
-        return super.onKeyDown(keyCode, event);
-    }
-
-    @Override
-    protected void onPause() {
-        System.out.println(("切入后台"));
-        Handler thisHandler = new Handler(Looper.getMainLooper());
-        thisHandler.post(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                if(MyImagePickerDelegate.result != null) {
-                    MyImagePickerDelegate.result.success(null);
-                }
-            }
-        });
-        finish();
-        super.onPause();
-    }
-
-    @Override
     public void onClick(View v) {
         int id = v.getId();
         if (id == R.id.btn_ok) {
             Intent intent = new Intent();
             intent.putExtra(ImagePicker.EXTRA_RESULT_ITEMS, imagePicker.getSelectedImages());
-            setResult(ImagePicker.RESULT_CODE_ITEMS, intent);  //多选不允许裁剪裁剪，返回数据
+            setResult(ImagePicker.RESULT_CODE_ITEMS, intent);
             finish();
         } else if (id == R.id.ll_dir) {
             if (mImageFolders == null) {
-                Log.i("ImageGridActivity", "您的手机没有图片");
                 return;
             }
-            //点击文件夹按钮
             createPopupFolderList();
-            mImageFolderAdapter.refreshData(mImageFolders);  //刷新数据
+            mImageFolderAdapter.refreshData(mImageFolders);
             if (mFolderPopupWindow.isShowing()) {
                 mFolderPopupWindow.dismiss();
             } else {
                 mFolderPopupWindow.showAtLocation(mFooterBar, Gravity.NO_GRAVITY, 0, 0);
-                //默认选择当前选择的上一个，当目录很多时，直接定位到已选中的条目
                 int index = mImageFolderAdapter.getSelectIndex();
                 index = index == 0 ? index : index - 1;
                 mFolderPopupWindow.setSelection(index);
@@ -243,25 +198,10 @@ public class ImageGridActivity extends ImageBaseActivity implements ImageDataSou
             intent.putExtra(ImagePicker.EXTRA_FROM_ITEMS, true);
             startActivityForResult(intent, ImagePicker.REQUEST_CODE_PREVIEW);
         } else if (id == R.id.btn_back) {
-            //点击返回按钮
-            Handler thisHandler = new Handler(Looper.getMainLooper());
-            thisHandler.post(new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    if(MyImagePickerDelegate.result != null) {
-                        MyImagePickerDelegate.result.success(null);
-                    }
-                }
-            });
             finish();
         }
     }
 
-    /**
-     * 创建弹出的ListView
-     */
     private void createPopupFolderList() {
         mFolderPopupWindow = new FolderPopUpWindow(this, mImageFolderAdapter);
         mFolderPopupWindow.setOnItemClickListener(new FolderPopUpWindow.OnItemClickListener() {
@@ -272,7 +212,6 @@ public class ImageGridActivity extends ImageBaseActivity implements ImageDataSou
                 mFolderPopupWindow.dismiss();
                 ImageFolder imageFolder = (ImageFolder) adapterView.getAdapter().getItem(position);
                 if (null != imageFolder) {
-//                    mImageGridAdapter.refreshData(imageFolder.images);
                     mRecyclerAdapter.refreshData(imageFolder.images);
                     mtvDir.setText(imageFolder.name);
                 }
@@ -286,51 +225,42 @@ public class ImageGridActivity extends ImageBaseActivity implements ImageDataSou
         this.mImageFolders = imageFolders;
         imagePicker.setImageFolders(imageFolders);
         if (imageFolders.size() == 0) {
-//            mImageGridAdapter.refreshData(null);
             mRecyclerAdapter.refreshData(null);
         } else {
-//            mImageGridAdapter.refreshData(imageFolders.get(0).images);
             mRecyclerAdapter.refreshData(imageFolders.get(0).images);
         }
-//        mImageGridAdapter.setOnImageItemClickListener(this);
         mRecyclerAdapter.setOnImageItemClickListener(this);
         mRecyclerView.setLayoutManager(new GridLayoutManager(this, 3));
-        mRecyclerView.addItemDecoration(new GridSpacingItemDecoration(3, Utils.dp2px(this, 2), false));
+        if (mRecyclerView.getItemDecorationCount() < 1) {
+            mRecyclerView.addItemDecoration(new GridSpacingItemDecoration(3, Utils.dp2px(this, 2), false));
+        }
         mRecyclerView.setAdapter(mRecyclerAdapter);
         mImageFolderAdapter.refreshData(imageFolders);
     }
 
     @Override
     public void onImageItemClick(View view, ImageItem imageItem, int position) {
-        //根据是否有相机按钮确定位置
         position = imagePicker.isShowCamera() ? position - 1 : position;
         if (imagePicker.isMultiMode()) {
             Intent intent = new Intent(ImageGridActivity.this, ImagePreviewActivity.class);
             intent.putExtra(ImagePicker.EXTRA_SELECTED_IMAGE_POSITION, position);
 
-            /**
-             * 2017-03-20
-             *
-             * 依然采用弱引用进行解决，采用单例加锁方式处理
-             */
-
-            // 据说这样会导致大量图片的时候崩溃
-//            intent.putExtra(ImagePicker.EXTRA_IMAGE_ITEMS, imagePicker.getCurrentImageFolderItems());
-
-            // 但采用弱引用会导致预览弱引用直接返回空指针
             DataHolder.getInstance().save(DataHolder.DH_CURRENT_IMAGE_FOLDER_ITEMS, imagePicker.getCurrentImageFolderItems());
             intent.putExtra(ImagePreviewActivity.ISORIGIN, isOrigin);
-            startActivityForResult(intent, ImagePicker.REQUEST_CODE_PREVIEW);  //如果是多选，点击图片进入预览界面
+            startActivityForResult(intent, ImagePicker.REQUEST_CODE_PREVIEW);
         } else {
             imagePicker.clearSelectedImages();
             imagePicker.addSelectedImageItem(position, imagePicker.getCurrentImageFolderItems().get(position), true);
-            if (imagePicker.isCrop()) {
+            if (imagePicker.isFreeCrop) {
+                Intent intent = new Intent(ImageGridActivity.this, FreeCropActivity.class);
+                startActivityForResult(intent, ImagePicker.REQUEST_CODE_CROP);
+            } else if (imagePicker.isCrop()) {
                 Intent intent = new Intent(ImageGridActivity.this, ImageCropActivity.class);
-                startActivityForResult(intent, ImagePicker.REQUEST_CODE_CROP);  //单选需要裁剪，进入裁剪界面
+                startActivityForResult(intent, ImagePicker.REQUEST_CODE_CROP);
             } else {
                 Intent intent = new Intent();
                 intent.putExtra(ImagePicker.EXTRA_RESULT_ITEMS, imagePicker.getSelectedImages());
-                setResult(ImagePicker.RESULT_CODE_ITEMS, intent);   //单选不需要裁剪，返回数据
+                setResult(ImagePicker.RESULT_CODE_ITEMS, intent);
                 finish();
             }
         }
@@ -354,9 +284,6 @@ public class ImageGridActivity extends ImageBaseActivity implements ImageDataSou
             mBtnPre.setTextColor(ContextCompat.getColor(this, R.color.ip_text_secondary_inverted));
             mBtnOk.setTextColor(ContextCompat.getColor(this, R.color.ip_text_secondary_inverted));
         }
-//        mImageGridAdapter.notifyDataSetChanged();
-//        mRecyclerAdapter.notifyItemChanged(position); // 17/4/21 fix the position while click img to preview
-//        mRecyclerAdapter.notifyItemChanged(position + (imagePicker.isShowCamera() ? 1 : 0));// 17/4/24  fix the position while click right bottom preview button
         for (int i = imagePicker.isShowCamera() ? 1 : 0; i < mRecyclerAdapter.getItemCount(); i++) {
             if (mRecyclerAdapter.getItem(i).path != null && mRecyclerAdapter.getItem(i).path.equals(item.path)) {
                 mRecyclerAdapter.notifyItemChanged(i);
@@ -372,62 +299,39 @@ public class ImageGridActivity extends ImageBaseActivity implements ImageDataSou
             if (resultCode == ImagePicker.RESULT_CODE_BACK) {
                 isOrigin = data.getBooleanExtra(ImagePreviewActivity.ISORIGIN, false);
             } else {
-                //从拍照界面返回
-                //点击 X , 没有选择照片
                 if (data.getSerializableExtra(ImagePicker.EXTRA_RESULT_ITEMS) == null) {
-                    //什么都不做 直接调起相机
                 } else {
-                    //说明是从裁剪页面过来的数据，直接返回就可以
                     setResult(ImagePicker.RESULT_CODE_ITEMS, data);
                 }
                 finish();
             }
         } else {
-            //如果是裁剪，因为裁剪指定了存储的Uri，所以返回的data一定为null
             if (resultCode == RESULT_OK && requestCode == ImagePicker.REQUEST_CODE_TAKE) {
-                //发送广播通知图片增加了
                 ImagePicker.galleryAddPic(this, imagePicker.getTakeImageFile());
-
-                /**
-                 * 2017-03-21 对机型做旋转处理
-                 */
                 String path = imagePicker.getTakeImageFile().getAbsolutePath();
-//                int degree = BitmapUtil.getBitmapDegree(path);
-//                if (degree != 0){
-//                    Bitmap bitmap = BitmapUtil.rotateBitmapByDegree(path,degree);
-//                    if (bitmap != null){
-//                        File file = new File(path);
-//                        try {
-//                            FileOutputStream bos = new FileOutputStream(file);
-//                            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bos);
-//                            bos.flush();
-//                            bos.close();
-//                        } catch (IOException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                }
-
                 ImageItem imageItem = new ImageItem();
                 imageItem.path = path;
-                imagePicker.clearSelectedImages();
-                imagePicker.addSelectedImageItem(0, imageItem, true);
-                if (imagePicker.isCrop()) {
-                    Intent intent = new Intent(ImageGridActivity.this, ImageCropActivity.class);
-                    startActivityForResult(intent, ImagePicker.REQUEST_CODE_CROP);  //单选需要裁剪，进入裁剪界面
-                } else {
-                    Intent intent = new Intent();
-                    intent.putExtra(ImagePicker.EXTRA_RESULT_ITEMS, imagePicker.getSelectedImages());
-                    setResult(ImagePicker.RESULT_CODE_ITEMS, intent);   //单选不需要裁剪，返回数据
-                    finish();
+                if (!imagePicker.isMultiMode()) {
+                    if (imagePicker.isFreeCrop) {
+                        imagePicker.clearSelectedImages();
+                        imagePicker.addSelectedImageItem(0, imageItem, true);
+                        Intent intent = new Intent(ImageGridActivity.this, FreeCropActivity.class);
+                        startActivityForResult(intent, ImagePicker.REQUEST_CODE_CROP);
+                        return;
+                    } else if (imagePicker.isCrop()) {
+                        imagePicker.clearSelectedImages();
+                        imagePicker.addSelectedImageItem(0, imageItem, true);
+                        Intent intent = new Intent(ImageGridActivity.this, ImageCropActivity.class);
+                        startActivityForResult(intent, ImagePicker.REQUEST_CODE_CROP);
+                        return;
+                    }
                 }
-            }
-            //裁切或者调用相机返回
-            else if(resultCode == RESULT_CANCELED && (requestCode == ImagePicker.REQUEST_CODE_CROP || requestCode == ImagePicker.REQUEST_CODE_TAKE)){
+                imagePicker.addSelectedImageItem(0, imageItem, true);
+                Intent intent = new Intent();
+                intent.putExtra(ImagePicker.EXTRA_RESULT_ITEMS, imagePicker.getSelectedImages());
+                setResult(ImagePicker.RESULT_CODE_ITEMS, intent);
                 finish();
-                startActivityForResult(getIntent(), 100);
-            }
-            else if (directPhoto) {
+            } else if (directPhoto) {
                 finish();
             }
         }

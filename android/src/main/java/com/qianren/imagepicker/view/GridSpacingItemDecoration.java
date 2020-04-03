@@ -5,11 +5,6 @@ import android.view.View;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-/**
- * author : zchu
- * date   : 2017/8/30
- * desc   : 为Recyclerview 的GridLayoutManager添加列间距
- */
 
 public class GridSpacingItemDecoration extends RecyclerView.ItemDecoration {
 

@@ -11,22 +11,12 @@ import androidx.viewpager.widget.PagerAdapter;
 import com.qianren.imagepicker.ImagePicker;
 import com.qianren.imagepicker.bean.ImageItem;
 import com.qianren.imagepicker.util.Utils;
+import com.qianren.photoview.OnPhotoTapListener;
+import com.qianren.photoview.PhotoView;
 
 import java.util.ArrayList;
 
-import com.qianren.photoview.OnPhotoTapListener;
-import com.qianren.photoview.PhotoView;
-import com.qianren.photoview.PhotoViewAttacher;
 
-/**
- * ================================================
- * 作    者：jeasonlzy（廖子尧 Github地址：https://github.com/jeasonlzy0216
- * 版    本：1.0
- * 创建日期：2016/5/19
- * 描    述：
- * 修订历史：
- * ================================================
- */
 public class ImagePageAdapter extends PagerAdapter {
 
     private int screenWidth;

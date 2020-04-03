@@ -6,25 +6,16 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import com.qianren.imagepicker.ImagePicker;
-import com.qianren.my_image_picker.R;
+import com.qianren.imagepicker.util.InnerToaster;
 import com.qianren.imagepicker.view.SystemBarTintManager;
+import com.qianren.my_image_picker.R;
 
-/**
- * ================================================
- * 作    者：jeasonlzy（廖子尧 Github地址：https://github.com/jeasonlzy0216
- * 版    本：1.0
- * 创建日期：2016/5/19
- * 描    述：
- * 修订历史：
- * ================================================
- */
 public class ImageBaseActivity extends AppCompatActivity {
 
     protected SystemBarTintManager tintManager;
@@ -37,7 +28,7 @@ public class ImageBaseActivity extends AppCompatActivity {
         }
         tintManager = new SystemBarTintManager(this);
         tintManager.setStatusBarTintEnabled(true);
-        tintManager.setStatusBarTintResource(R.color.ip_color_primary_dark);  //设置上方状态栏的颜色
+        tintManager.setStatusBarTintResource(R.color.ip_color_primary_dark);
     }
 
     @TargetApi(19)
@@ -58,7 +49,7 @@ public class ImageBaseActivity extends AppCompatActivity {
     }
 
     public void showToast(String toastText) {
-        Toast.makeText(getApplicationContext(), toastText, Toast.LENGTH_SHORT).show();
+        InnerToaster.obj(this).show(toastText);
     }
 
     @Override

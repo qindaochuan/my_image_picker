@@ -5,14 +5,11 @@ import android.graphics.Rect;
 import android.view.View;
 import android.view.ViewTreeObserver;
 
-/**
- * Created by z-chu on 2017/9/4
- * 用于监听导航栏的显示和隐藏，主要用于适配华为EMUI系统上虚拟导航栏可随时收起和展开的情况
- */
+
 public class NavigationBarChangeListener implements ViewTreeObserver.OnGlobalLayoutListener {
 
-    public static final int ORIENTATION_VERTICAL = 1;           //监听竖屏模式导航栏的显示和隐藏
-    public static final int ORIENTATION_HORIZONTAL = 2;         //监听横屏模式导航栏的显示和隐藏
+    public static final int ORIENTATION_VERTICAL = 1;
+    public static final int ORIENTATION_HORIZONTAL = 2;
 
     private Rect rect;
     private View rootView;
